@@ -1,0 +1,49 @@
+/* src/styles/custom.css */
+.hero-padding {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.centered {
+  text-align: center;
+}
+
+/* Small tweaks for forms and layout */
+body {
+  background-color: #f8f9fa;
+}
+
+.container > .row > .col-md-6,
+.container > .row > .col-md-8 {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+
+/* Fix chat box alignment and size */
+.project-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 400px; /* adjust as needed */
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.project-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+}
+
+.project-chat-footer {
+  display: flex;
+  border-top: 1px solid #dee2e6;
+  padding: 0.5rem;
+  background: #fff;
+}
