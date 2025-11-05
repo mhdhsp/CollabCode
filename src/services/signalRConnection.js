@@ -4,59 +4,70 @@ class SignalRConnectionService {
   constructor() {
     this.connection = null;
     this.projectId = null;
+    this.onReceiveCallback = null;
   }
 
   async startConnection(projectId) {
-    if (this.connection) {
-      // If already connected to a project group, leave it before joining new
-      if (this.projectId && this.projectId !== projectId) {
-        await this.leaveGroup(this.projectId);
+    console.log("SignalR: startConnection", projectId);
+
+    // Same project → already joined
+    if (this.connection && this.projectId === projectId) {
+      console.log("SignalR: already in group", projectId);
+      return;
+    }
+
+    // Different project → leave old group, keep connection
+    if (this.connection && this.projectId !== projectId) {
+      console.log("SignalR: switching from", this.projectId, "to", projectId);
+      await this.leaveGroup(this.projectId);
+    }
+
+    // No connection → create once
+    if (!this.connection) {
+      console.log("SignalR: building new connection");
+      this.connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${import.meta.env.VITE_API_BASE_URL}/hubs/chat`, {
+          withCredentials: true,
+          accessTokenFactory:()=>localStorage.getItem("token")
+        })
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+      this.connection.on("Receive", (msg) => {
+        console.log("SignalR: raw Receive", msg);
+        if (this.onReceiveCallback) this.onReceiveCallback(msg);
+      });
+
+      try {
+        await this.connection.start();
+        console.log("SignalR: connected");
+      } catch (e) {
+        console.error("SignalR: start error", e);
+        throw e;
       }
-      this.projectId = projectId;
-      return; // already connected
     }
 
-    this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(`/hubs/project`, { withCredentials: true })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Information)
-      .build();
-
+    // Join the new group
     this.projectId = projectId;
+    
+    await this.connection.invoke("JoinGroup", projectId.toString());
+    console.log("SignalR: joined group", projectId);
+  }
 
-    try {
-      await this.connection.start();
-      console.log("SignalR connected");
-      await this.connection.invoke("JoinGroup", projectId.toString());
-    } catch (err) {
-      console.error("SignalR connection error:", err);
-      throw err;
-    }
+  onReceive(cb) {
+    this.onReceiveCallback = cb;
   }
 
   async leaveGroup(projectId) {
+    console.log(projectId);
+    
     if (!this.connection) return;
     try {
-      // SignalR has no built-in LeaveGroup method exposed here, so no client call.
-      // But server can handle group removal on disconnect. 
-      // You might implement a LeaveGroup hub method if needed.
-      this.projectId = null;
-    } catch (err) {
-      console.error("SignalR leave group error:", err);
-    }
-  }
-
-  onReceive(callback) {
-    if (!this.connection) return;
-    this.connection.on("Receive", callback);
-  }
-
-  async sendUpdate(projectId) {
-    if (!this.connection) return;
-    try {
-      await this.connection.invoke("UpdateProject", projectId.toString());
-    } catch (err) {
-      console.error("SignalR sendUpdate error:", err);
+      await this.connection.invoke("LeaveGroup", projectId.toString());
+      console.log("SignalR: left group", projectId);
+    } catch (e) {
+      console.error("SignalR: leaveGroup error", e);
     }
   }
 
@@ -64,14 +75,15 @@ class SignalRConnectionService {
     if (!this.connection) return;
     try {
       await this.connection.stop();
+      console.log("SignalR: stopped");
+    } catch (e) {
+      console.error("SignalR: stop error", e);
+    } finally {
       this.connection = null;
       this.projectId = null;
-    } catch (err) {
-      console.error("SignalR stop connection error:", err);
     }
   }
 }
 
-// Export singleton instance
 const signalRConnectionService = new SignalRConnectionService();
 export default signalRConnectionService;
