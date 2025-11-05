@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import fileService from "../../services/api/fileService";
+import * as signalR from "@microsoft/signalr"; // 👈 import SignalR
 
 const ProjectFilesSection = ({
   project,
@@ -16,6 +17,49 @@ const ProjectFilesSection = ({
   const [isShowAssign, setIsShowAssign] = useState(false);
   const [activeAssignFileId, setActiveAssignFileId] = useState(null);
 
+  // 👇 Setup Notification Hub Connection (runs once)
+  const notificationHub = new signalR.HubConnectionBuilder()
+    .withUrl(`${import.meta.env.VITE_API_BASE_URL}/hubs/notification`, {
+      accessTokenFactory: () => localStorage.getItem("token"),
+    })
+    .withAutomaticReconnect()
+    .build();
+
+  const startNotificationHub = async () => {
+    try {
+      if (notificationHub.state === signalR.HubConnectionState.Disconnected) {
+        await notificationHub.start();
+        console.log("🔔 NotificationHub connected");
+      }
+    } catch (err) {
+      console.error("❌ NotificationHub connection error:", err);
+    }
+  };
+
+  // 📢 Helper to send notification
+  const sendNotification = async (userId, title, message) => {
+    try {
+      await startNotificationHub();
+      await notificationHub.invoke("SendNotificationToUser", userId.toString(), title, message);
+      console.log(`📩 Notification sent to User ${userId}: ${message}`);
+    } catch (err) {
+      console.error("❌ Failed to send notification:", err);
+    }
+  };
+
+  // 📢 Helper to notify all members
+  const notifyAllMembers = async (title, message) => {
+    try {
+      await startNotificationHub();
+      for (const member of project.members) {
+        await notificationHub.invoke("SendNotificationToUser", member.id.toString(), title, message);
+      }
+      console.log("📢 Notification sent to all project members");
+    } catch (err) {
+      console.error("❌ Failed to notify all members:", err);
+    }
+  };
+
   const handleCreateFile = async (e) => {
     console.log("handleCreateFile called", { fileName });
     e.preventDefault();
@@ -31,6 +75,12 @@ const ProjectFilesSection = ({
       setFileName("");
       setShowCreateForm(false);
       onProjectUpdate();
+
+      // 🔔 Notify all members
+      await notifyAllMembers(
+        "📁 New File Created",
+        `A new file "${fileName}" was added to project "${project.projectName}".`
+      );
     } catch (err) {
       console.error("Error creating file", err);
       setError(err.message || "Failed to create file");
@@ -71,8 +121,18 @@ const ProjectFilesSection = ({
     if (!confirmed) return;
 
     try {
-      await fileService.unassign(fileId);
+      const res = await fileService.unassign(fileId);
       onProjectUpdate();
+
+      // 🔔 Notify previously assigned user (if known)
+      const file = project.files.find((f) => f.id === fileId);
+      if (file?.assignedTo) {
+        await sendNotification(
+          file.assignedTo,
+          "📄 File Unassigned",
+          `The file "${file.fileName}" has been unassigned from you.`
+        );
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to unassign file");
     }
@@ -189,10 +249,10 @@ const ProjectFilesSection = ({
                       </small>
                       <small className="text-muted d-block">{file.status}</small>
                     </div>
-                      
+
                     {isOwner && file.status !== "Progress" && (
                       <div className="btn-group btn-group-sm" role="group">
-                         <br/>
+                        <br />
                         <button
                           className="btn btn-outline-info"
                           onClick={(e) => {
@@ -298,6 +358,13 @@ const ProjectFilesSection = ({
                                   targetUserId: member.id,
                                 });
                                 onProjectUpdate();
+
+                                // 🔔 Notify assigned user
+                                await sendNotification(
+                                  member.id,
+                                  "📄 File Assigned",
+                                  `You have been assigned a new file in project "${project.projectName}".`
+                                );
                               } catch (err) {
                                 setError(err.response?.data?.message || "Failed to assign");
                               } finally {

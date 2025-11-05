@@ -60,7 +60,14 @@ const fileService = {
     const res = await axiosInstance.get(`/api/File/Access/${fileId}`);
     console.log("getFileAccessList response:", res.data);
     return res.data.data ?? res.data.Data ?? res.data;
+  },
+
+  getAllVersions: async (fileId) => {
+    const res = await axiosInstance.get(`/api/File/AllVersions?id=${fileId}`);
+    return res.data.data ?? res.data.Data ?? res.data;
   }
+
+
 };
 
 export default fileService;
