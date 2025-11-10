@@ -47,7 +47,7 @@ const ProjectChatSection = ({ projectId, currentUserId }) => {
         .build();
 
       // 🔔 Listen for new messages
-      conn.on("Receive", (msg) => {
+      conn.on("ReceiveMsg", (msg) => {
         console.log("📩 Real-time message:", msg);
         const incomingProjectId = msg.projectId ?? msg.ProjectId;
         if (incomingProjectId != projectId) return;

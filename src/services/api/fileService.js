@@ -13,8 +13,8 @@ const fileService = {
     console.log("deleteFile response:", res.data);
     return res.data.data ?? res.data.Data ?? res.data;
   },
-  saveFile:async(payload)=>{
-     console.log("saveFile called with:", payload);
+  saveFile: async (payload) => {
+    console.log("saveFile called with:", payload);
     const res = await axiosInstance.patch('/api/File/Save', payload);
     console.log("saveFile response:", res.data);
     return res.data.data ?? res.data.Data ?? res.data;
@@ -65,9 +65,16 @@ const fileService = {
   getAllVersions: async (fileId) => {
     const res = await axiosInstance.get(`/api/File/AllVersions?id=${fileId}`);
     return res.data.data ?? res.data.Data ?? res.data;
-  }
+  },
 
-
+  // ---------- New: startEdit ----------
+  startEdit: async (fileId) => {
+    console.log("startEdit called with fileId:", fileId);
+    const res = await axiosInstance.patch(`/api/File/StartEdit/${fileId}`);
+    console.log("startEdit response:", res.data);
+    return res.data.data ?? res.data.Data ?? res.data;
+  },
+  // ------------------------------------
 };
 
 export default fileService;

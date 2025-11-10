@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import fileService from "../../services/api/fileService";
-import * as signalR from "@microsoft/signalr"; // 👈 import SignalR
+import * as signalR from "@microsoft/signalr"; // 🟢 added
 
 const ProjectFilesSection = ({
   project,
@@ -17,48 +17,48 @@ const ProjectFilesSection = ({
   const [isShowAssign, setIsShowAssign] = useState(false);
   const [activeAssignFileId, setActiveAssignFileId] = useState(null);
 
-  // 👇 Setup Notification Hub Connection (runs once)
-  const notificationHub = new signalR.HubConnectionBuilder()
-    .withUrl(`${import.meta.env.VITE_API_BASE_URL}/hubs/notification`, {
-      accessTokenFactory: () => localStorage.getItem("token"),
-    })
-    .withAutomaticReconnect()
-    .build();
+  // 🟢 Notification States
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  const startNotificationHub = async () => {
-    try {
-      if (notificationHub.state === signalR.HubConnectionState.Disconnected) {
-        await notificationHub.start();
-        console.log("🔔 NotificationHub connected");
+  // 🟢 Setup SignalR Connection
+  useEffect(() => {
+    const hub = new signalR.HubConnectionBuilder()
+      .withUrl(`${import.meta.env.VITE_API_BASE_URL}/hubs/notification`, {
+        accessTokenFactory: () => localStorage.getItem("token"),
+      })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
+
+    const start = async () => {
+      try {
+        await hub.start();
+        console.log("✅ NotificationHub Connected");
+
+        // 🟢 Listen for notifications
+        hub.on("ReceiveNotification", (notification) => {
+          console.log("📩 Notification Received:", notification);
+          setNotifications((prev) => [
+            ...prev,
+            {
+              title: notification.title,
+              message: notification.message,
+              time: new Date(notification.time).toLocaleString(),
+            },
+          ]);
+        });
+      } catch (err) {
+        console.error("❌ NotificationHub connection error:", err);
       }
-    } catch (err) {
-      console.error("❌ NotificationHub connection error:", err);
-    }
-  };
+    };
 
-  // 📢 Helper to send notification
-  const sendNotification = async (userId, title, message) => {
-    try {
-      await startNotificationHub();
-      await notificationHub.invoke("SendNotificationToUser", userId.toString(), title, message);
-      console.log(`📩 Notification sent to User ${userId}: ${message}`);
-    } catch (err) {
-      console.error("❌ Failed to send notification:", err);
-    }
-  };
+    start();
 
-  // 📢 Helper to notify all members
-  const notifyAllMembers = async (title, message) => {
-    try {
-      await startNotificationHub();
-      for (const member of project.members) {
-        await notificationHub.invoke("SendNotificationToUser", member.id.toString(), title, message);
-      }
-      console.log("📢 Notification sent to all project members");
-    } catch (err) {
-      console.error("❌ Failed to notify all members:", err);
-    }
-  };
+    return () => {
+      hub.stop();
+    };
+  }, []);
 
   const handleCreateFile = async (e) => {
     console.log("handleCreateFile called", { fileName });
@@ -75,12 +75,6 @@ const ProjectFilesSection = ({
       setFileName("");
       setShowCreateForm(false);
       onProjectUpdate();
-
-      // 🔔 Notify all members
-      await notifyAllMembers(
-        "📁 New File Created",
-        `A new file "${fileName}" was added to project "${project.projectName}".`
-      );
     } catch (err) {
       console.error("Error creating file", err);
       setError(err.message || "Failed to create file");
@@ -121,18 +115,8 @@ const ProjectFilesSection = ({
     if (!confirmed) return;
 
     try {
-      const res = await fileService.unassign(fileId);
+      await fileService.unassign(fileId);
       onProjectUpdate();
-
-      // 🔔 Notify previously assigned user (if known)
-      const file = project.files.find((f) => f.id === fileId);
-      if (file?.assignedTo) {
-        await sendNotification(
-          file.assignedTo,
-          "📄 File Unassigned",
-          `The file "${file.fileName}" has been unassigned from you.`
-        );
-      }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to unassign file");
     }
@@ -161,6 +145,15 @@ const ProjectFilesSection = ({
 
   return (
     <div className="card h-100 d-flex flex-column">
+      {/* 🟢 Notification Button */}
+      <button
+        className="btn btn-outline-info position-absolute end-0 m-2"
+        style={{ zIndex: 10 }}
+        onClick={() => setShowNotifications(true)}
+      >
+        🔔 Notifications ({notifications.length})
+      </button>
+
       <div className="card-header d-flex justify-content-between align-items-center">
         <h6 className="mb-0">
           <i className="bi bi-files me-1"></i>Files
@@ -313,7 +306,67 @@ const ProjectFilesSection = ({
         )}
       </div>
 
-      {/* Modal */}
+      {/* 🟢 Notifications Modal */}
+      {showNotifications && (
+        <>
+          <div
+            className="modal-backdrop fade show"
+            style={{ zIndex: 1040 }}
+            onClick={() => setShowNotifications(false)}
+          ></div>
+          <div
+            className="modal fade show d-block"
+            style={{ zIndex: 1050 }}
+            tabIndex="-1"
+          >
+            <div className="modal-dialog modal-dialog-centered modal-lg">
+              <div className="modal-content">
+                <div className="modal-header bg-info text-white">
+                  <h5 className="modal-title">Notifications</h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowNotifications(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  {notifications.length === 0 ? (
+                    <p className="text-center text-muted">No notifications yet.</p>
+                  ) : (
+                    <ul className="list-group">
+                      {notifications
+                        .slice()
+                        .reverse()
+                        .map((n, i) => (
+                          <li
+                            key={i}
+                            className="list-group-item d-flex justify-content-between align-items-start"
+                          >
+                            <div>
+                              <strong>{n.title}</strong>
+                              <p className="mb-1 small">{n.message}</p>
+                              <small className="text-muted">{n.time}</small>
+                            </div>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowNotifications(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modal for Assign File (unchanged) */}
       {isShowAssign && (
         <>
           <div
@@ -358,13 +411,6 @@ const ProjectFilesSection = ({
                                   targetUserId: member.id,
                                 });
                                 onProjectUpdate();
-
-                                // 🔔 Notify assigned user
-                                await sendNotification(
-                                  member.id,
-                                  "📄 File Assigned",
-                                  `You have been assigned a new file in project "${project.projectName}".`
-                                );
                               } catch (err) {
                                 setError(err.response?.data?.message || "Failed to assign");
                               } finally {
