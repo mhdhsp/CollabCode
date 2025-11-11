@@ -44,16 +44,19 @@ const ProjectEditorSection = ({
 
   const canEdit = (file) => {
     if (!file) return false;
-    if (Number(file.assignedTo) === Number(currentUserId)) {
-      return file.accessLevel !== "private";
-    }
-    return false;
+    return (
+      Number(file.assignedTo) === Number(currentUserId) &&
+      file.status == "Progress"
+    );
+    // return file.accessLevel !== "private";
+
+    // return false;
   };
 
   const canView = (file) => {
     if (!file) return false;
     if (project.ownerId === currentUserId) return true;
-    if (file.accessLevel === "private") return false;
+    // if (file.accessLevel === "private") return false;
     return true;
   };
 
@@ -67,7 +70,9 @@ const ProjectEditorSection = ({
       const versions = await fileService.getAllVersions(activeFile.id);
       setFileVersions(versions);
     } catch (err) {
-      setVersionsError(err?.response?.data?.message || "Failed to load versions");
+      setVersionsError(
+        err?.response?.data?.message || "Failed to load versions"
+      );
     } finally {
       setLoadingVersions(false);
     }
@@ -156,11 +161,14 @@ const ProjectEditorSection = ({
                   <i className="bi bi-clock-history"></i> Versions
                 </button>
                 <button
-                  className="btn btn-sm btn-success"
-                  disabled={!canEdit(activeFile) || editing}
+                  className={`btn ${
+                    activeFile?.status === "Progress"
+                      ? "btn-success"
+                      : "btn-warning"
+                  }`}
                   onClick={handleSave}
                 >
-                  {editing ? "Saving..." : "Save"}
+                  {activeFile?.status === "Progress" ? "Save" : "Update"}
                 </button>
               </div>
             )}
@@ -272,13 +280,18 @@ const ProjectEditorSection = ({
                 <div className="modal-body">
                   {loadingVersions ? (
                     <div className="text-center py-4">
-                      <div className="spinner-border text-primary" role="status" />
+                      <div
+                        className="spinner-border text-primary"
+                        role="status"
+                      />
                       <span className="visually-hidden">Loading...</span>
                     </div>
                   ) : versionsError ? (
                     <div className="alert alert-danger">{versionsError}</div>
                   ) : fileVersions.length === 0 ? (
-                    <p className="text-center text-muted">No versions available.</p>
+                    <p className="text-center text-muted">
+                      No versions available.
+                    </p>
                   ) : (
                     <div>
                       {fileVersions.map((version) => (
@@ -292,9 +305,12 @@ const ProjectEditorSection = ({
                             outline: "none",
                           }}
                           onFocus={(e) =>
-                            (e.currentTarget.style.boxShadow = "0 0 8px #0d6efd")
+                            (e.currentTarget.style.boxShadow =
+                              "0 0 8px #0d6efd")
                           }
-                          onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
+                          onBlur={(e) =>
+                            (e.currentTarget.style.boxShadow = "none")
+                          }
                         >
                           <div className="d-flex justify-content-between mb-2">
                             <strong>{version.fileName}</strong>

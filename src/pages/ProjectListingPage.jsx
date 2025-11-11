@@ -70,7 +70,8 @@ const ProjectListingPage = () => {
       fetchUserProjects();
     } catch (err) {
       console.log("Error deleting project:", err);
-      setError(err.message || 'Failed to delete project');
+      setError(err.response.data.message || 'Failed to delete project');
+      setTimeout(()=>{setError("")},2000)
     }
   };
 
