@@ -209,12 +209,12 @@ const ProjectFilesSection = ({
                 className="btn btn-sm btn-success"
                 type="submit"
                 disabled={creating}
-                style={{ minWidth: "80px" }}
+                style={{ minWidth: "10px" }}
               >
                 {creating ? (
                   <span className="spinner-border spinner-border-sm"></span>
                 ) : (
-                  "Create"
+                  <i className="bi bi-check"></i>
                 )}
               </button>
             </form>

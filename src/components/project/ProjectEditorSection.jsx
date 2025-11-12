@@ -44,13 +44,17 @@ const ProjectEditorSection = ({
 
   const canEdit = (file) => {
     if (!file) return false;
-    return (
+    if (
       Number(file.assignedTo) === Number(currentUserId) &&
-      file.status == "Progress"
-    );
-    // return file.accessLevel !== "private";
+      file.status == "Progress" 
+    ) return true;
+     
+    if(Number(file.assignedTo) === Number(currentUserId) &&
+      file.status == "UnAssigned" )
+      return true;
 
-    // return false;
+      return false;
+    
   };
 
   const canView = (file) => {
