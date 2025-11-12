@@ -46,15 +46,22 @@ const ProjectEditorSection = ({
     if (!file) return false;
     if (
       Number(file.assignedTo) === Number(currentUserId) &&
-      file.status == "Progress" 
-    ) return true;
-     
-    if(Number(file.assignedTo) === Number(currentUserId) &&
-      file.status == "UnAssigned" )
+      file.status == "Progress"
+    )
       return true;
 
-      return false;
-    
+    if (
+      Number(file.assignedTo) === Number(currentUserId) &&
+      file.status == "UnAssigned"
+    )
+      return true;
+    if (
+      Number(file.assignedTo) === Number(currentUserId) &&
+      file.status == "Saved"
+    )
+      return true;
+
+    return false;
   };
 
   const canView = (file) => {
@@ -172,7 +179,7 @@ const ProjectEditorSection = ({
                   }`}
                   onClick={handleSave}
                 >
-                  {activeFile?.status === "Progress" ? "Save" : "Update"}
+                  {activeFile?.status !== "Saved" ? "Save" : "Update"}
                 </button>
               </div>
             )}
