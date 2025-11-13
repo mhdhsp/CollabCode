@@ -75,6 +75,12 @@ const fileService = {
     return res.data.data ?? res.data.Data ?? res.data;
   },
   // ------------------------------------
+  preserveFile:async(payload)=>{
+    console.log("preserve file called with "+payload);
+    const res=await axiosInstance.patch(`/api/File/Preserve`)
+    console.log("preserve file response"+res.data);
+    return res.data.data ??res.data.Data ??res.data;
+  }
 };
 
 export default fileService;

@@ -36,11 +36,13 @@ const ProjectEditorSection = ({
 
   useEffect(() => {
     if (activeFile) {
-      setContent(activeFile.content || "");
+      const savedContent = localStorage.getItem(`fileContent_${activeFile.id}`);
+       setContent(savedContent !== null ? savedContent : activeFile.content || "");
     } else {
       setContent("");
     }
   }, [activeFile]);
+
 
   const canEdit = (file) => {
     if (!file) return false;
@@ -106,11 +108,11 @@ const ProjectEditorSection = ({
         content,
         projectId: project.id,
       });
+       localStorage.removeItem(`fileContent_${activeFile.id}`);
       setStatusMsg("Saved successfully");
       await new Promise((r) => setTimeout(r, 300));
       onProjectUpdate();
 
-      await signalRConnectionService.sendUpdate(project.id);
     } catch (err) {
       setStatusMsg(err?.message || "Save failed");
     } finally {
@@ -136,6 +138,12 @@ const ProjectEditorSection = ({
     }
   };
 
+  const onChange = (v) => {
+    (v) => setContent(v ?? "");
+    if (activeFile) {
+      localStorage.setItem(`fileContent_${activeFile.id}`, v ?? "");
+    }
+  };
   if (!project) {
     return (
       <div className="card h-100">
@@ -235,7 +243,7 @@ const ProjectEditorSection = ({
                   height="100%"
                   defaultLanguage="javascript"
                   value={content}
-                  onChange={(v) => setContent(v ?? "")}
+                  onChange={onChange}
                   options={{
                     readOnly: !canEdit(activeFile),
                     automaticLayout: true,
