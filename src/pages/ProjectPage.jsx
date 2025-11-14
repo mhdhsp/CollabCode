@@ -45,6 +45,7 @@ const ProjectPage = () => {
           time: new Date(notification.time).toLocaleString(),
         },
       ]);
+      fetchProject();
     });
 
     const start = async () => {
