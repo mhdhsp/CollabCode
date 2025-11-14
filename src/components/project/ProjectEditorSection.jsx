@@ -98,7 +98,7 @@ const ProjectEditorSection = ({
   };
 
   const handleSave = async () => {
-    if (!activeFile) return;
+    if (!activeFile || editing) return;
     setStatusMsg(null);
     setEditing(true);
 
@@ -108,10 +108,11 @@ const ProjectEditorSection = ({
         content,
         projectId: project.id,
       });
-       localStorage.removeItem(`fileContent_${activeFile.id}`);
+       
       setStatusMsg("Saved successfully");
       await new Promise((r) => setTimeout(r, 300));
       onProjectUpdate();
+      localStorage.removeItem(`fileContent_${activeFile.id}`);
 
     } catch (err) {
       setStatusMsg(err?.message || "Save failed");
@@ -139,7 +140,7 @@ const ProjectEditorSection = ({
   };
 
   const onChange = (v) => {
-    (v) => setContent(v ?? "");
+    setContent(v ?? "");
     if (activeFile) {
       localStorage.setItem(`fileContent_${activeFile.id}`, v ?? "");
     }
