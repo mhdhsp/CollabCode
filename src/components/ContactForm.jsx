@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import axiosInstance from '../services/api/axiosInstance';
 import { isEmail, minLength } from '../utils/validators';
+import { useNavigate } from 'react-router-dom';
 
 const ContactForm = ({ onSuccess }) => {
   const [name, setName] = useState('');
@@ -12,6 +13,7 @@ const ContactForm = ({ onSuccess }) => {
   const [topError, setTopError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
+  const navigate=useNavigate();
   const validate = () => {
     console.log('Validating form fields');
     const fe = { name: null, email: null, message: null };
@@ -41,6 +43,7 @@ const ContactForm = ({ onSuccess }) => {
       console.log('Form submission successful');
       setSuccessMsg('Message sent — we will get back to you shortly.');
       setName(''); setEmail(''); setMessage('');
+      setTimeout(()=>{navigate("/")},3000);
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error('Error submitting form:', err);
@@ -55,7 +58,7 @@ const ContactForm = ({ onSuccess }) => {
   return (
     <form onSubmit={handleSubmit} noValidate>
       {topError && <div className="alert alert-danger">{topError}</div>}
-      {successMsg && <div className="alert alert-success">{successMsg}</div>}
+      
 
       <div className="mb-3">
         <label className="form-label">Name</label>
@@ -96,6 +99,7 @@ const ContactForm = ({ onSuccess }) => {
       <button type="submit" className="btn btn-primary" disabled={submitting}>
         {submitting ? 'Sending...' : 'Send Message'}
       </button>
+      {successMsg && <div className="alert alert-success">{successMsg}</div>}
     </form>
   );
 };
