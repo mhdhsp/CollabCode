@@ -102,7 +102,7 @@ const ProjectPage = () => {
     setActiveFile(file);
   };
 
-  const handleProjectUpdate = () => {
+  const handleProjectUpdate = async () => {
     console.log("project update");
     fetchProject(true);
   };
@@ -170,7 +170,8 @@ const ProjectPage = () => {
         <div className="col-12 text-center text-md-start">
           <h4 className="mb-0">{project.projectName || "Untitled Project"}</h4>
           <small className="text-muted">
-            {isOwner ? "Owner" : "Member"} • {project.members?.length || 0} members
+            {isOwner ? "Owner" : "Member"} • {project.members?.length || 0}{" "}
+            members
           </small>
         </div>
       </div>
@@ -213,7 +214,10 @@ const ProjectPage = () => {
               onProjectUpdate={handleProjectUpdate}
               isOwner={isOwner}
             />
-            <ProjectChatSection projectId={project.id} currentUserId={user?.id} />
+            <ProjectChatSection
+              projectId={project.id}
+              currentUserId={user?.id}
+            />
           </div>
         </div>
       </div>
@@ -243,30 +247,33 @@ const ProjectPage = () => {
                 </div>
                 <div className="modal-body">
                   {notifications.length === 0 ? (
-                    <p className="text-center text-muted">No notifications yet.</p>
+                    <p className="text-center text-muted">
+                      No notifications yet.
+                    </p>
                   ) : (
                     <ul className="list-group">
-                      {[...notifications]
-                        .reverse()
-                        .map((n, i) => (
-                          <li
-                            key={i}
-                            className="list-group-item d-flex justify-content-between align-items-start"
-                          >
-                            <div>
-                              <strong>{n.title}</strong>
-                              <p className="mb-1 small">{n.message}</p>
-                              <small className="text-muted">{n.time}</small>
-                            </div>
-                          </li>
-                        ))}
+                      {[...notifications].reverse().map((n, i) => (
+                        <li
+                          key={i}
+                          className="list-group-item d-flex justify-content-between align-items-start"
+                        >
+                          <div>
+                            <strong>{n.title}</strong>
+                            <p className="mb-1 small">{n.message}</p>
+                            <small className="text-muted">{n.time}</small>
+                          </div>
+                        </li>
+                      ))}
                     </ul>
                   )}
                 </div>
                 <div className="modal-footer">
                   <button
                     className="btn btn-secondary"
-                    onClick={() => setShowNotifications(false)}
+                    onClick={() => {
+                      setShowNotifications(false);
+                      setNotifications([]);
+                    }}
                   >
                     Close
                   </button>

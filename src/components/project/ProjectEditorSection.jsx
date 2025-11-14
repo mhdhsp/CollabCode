@@ -111,7 +111,7 @@ const ProjectEditorSection = ({
        
       setStatusMsg("Saved successfully");
       await new Promise((r) => setTimeout(r, 300));
-      onProjectUpdate();
+      await onProjectUpdate();
       localStorage.removeItem(`fileContent_${activeFile.id}`);
 
     } catch (err) {
