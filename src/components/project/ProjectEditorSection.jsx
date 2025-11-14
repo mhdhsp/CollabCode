@@ -115,7 +115,7 @@ const ProjectEditorSection = ({
       localStorage.removeItem(`fileContent_${activeFile.id}`);
 
     } catch (err) {
-      setStatusMsg(err?.message || "Save failed");
+      setStatusMsg(err.respo.data.message || "Save failed");
     } finally {
       setEditing(false);
       setTimeout(() => setStatusMsg(null), 3000);
@@ -230,7 +230,7 @@ const ProjectEditorSection = ({
             </div>
           )}
 
-          <div className="flex-grow-1" style={{ minHeight: 0 }}>
+          <div className="flex-grow-1" style={{ height:"70 vh"}}>
             {activeFile ? (
               !canView(activeFile) ? (
                 <div className="h-100 d-flex align-items-center justify-content-center p-4">
