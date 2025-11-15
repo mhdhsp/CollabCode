@@ -1,16 +1,58 @@
-# React + Vite
+# CollabCode 💻✨
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time collaboration platform for developers to code together seamlessly. Built with a .NET Core backend and a React frontend, featuring live editing, chat, and project management.
 
-Currently, two official plugins are available:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![.NET](https://img.shields.io/badge/.NET-6.0-purple)
+![React](https://img.shields.io/badge/React-18-blue)
+![SignalR](https://img.shields.io/badge/SignalR-Real--Time-green)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Live Demo
 
-## React Compiler
+- **Live Application**: [https://spectacular-jalebi-743cca.netlify.app/]
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📋 Table of Contents
 
-## Expanding the ESLint configuration
+- [Features](#features)
+- [Tech Stack](#tech-stack)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## ✨ Features
+
+### 🔧 Core Functionality
+- **Real-time Code Collaboration** - Multiple users can edit files simultaneously
+- **Project Management** - Create and manage coding projects with team members
+- **Join Code System** - Simple code-based project access
+
+### 💬 Communication
+- **Live Chat** - Integrated chat using SignalR for instant communication
+- **Real-time Notifications** - Get instant updates on project activities
+
+### 📁 File Management
+- **File Assignment** - Project owners can assign files to specific members
+- **Version Tracking** - Track changes and file history
+- **File Status System** - Organized file states (Pending, In Progress, Completed)
+
+## 🛠 Tech Stack
+
+### Backend
+- **.NET 6** - ASP.NET Core Web API
+- **SignalR** - Real-time communication
+- **Entity Framework Core** - ORM and data access
+- **SQL Server** - Database
+- **Clean Architecture** - Project structure
+- **Repository Pattern** - Data access abstraction
+- **JWT Authentication** - Secure access
+
+### Frontend
+- **React 18** - User interface
+- **React Query** - Server state management
+- **Context API** - Client state management
+- **Axios** - HTTP client
+- **Boostrap** - Styling
+
+### Deployment
+- **Frontend**: Netlify
+- **Backend**: Render
+- **Database**: Railway
+
