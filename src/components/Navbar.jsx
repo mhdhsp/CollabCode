@@ -17,7 +17,7 @@ function Navbar() {
       <div className="container">
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img src={logo} alt="logo" style={{ height: 32, marginRight: 8 }} />
-          Realtime Editor
+          CollabCode 
         </Link>
 
         <button
